@@ -390,7 +390,7 @@ Nhìn lại thì thấy dòng này.
 <font color= "#0000ff" font size= 3>
 ```
 
-Cụ thể là khi câu query lỗi thì xuất hiện dòng trên, vậy chỉ cần ta xét `Content-Length` để biết được kết quả là `True` hay `False` hoặc xét có dòng `<font color= "#0000ff" font size= 3>` khi kết quả trả về `False`.
+Cụ thể là khi câu query lỗi thì xuất hiện dòng trên, vậy mình chỉ cần xét `Content-Length` để biết được kết quả là `True` hay `False` hoặc xét có dòng `<font color= "#0000ff" font size= 3>` khi kết quả trả về `False`.
 
 Nên mình chỉ cần sửa [script](https://github.com/n9uyen/sqli-labs/blob/master/scripts/Less-9.py) ở câu 8 lại một chút là code chạy được. ¯\\\_(ツ)\_/¯ 
 
