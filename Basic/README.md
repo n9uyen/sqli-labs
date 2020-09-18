@@ -1017,7 +1017,7 @@ Câu này tương tự câu 20 nhưng khi `Set-Cookie` thì data đã được e
 
 ![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-21_1.png?raw=true)
 
-Trước khi xử lý `Cookie`, server sẽ `decode` ` bas64` sau đó mới xử lý câu query.
+Trước khi xử lý `Cookie`, server sẽ `decode` ` base64` sau đó mới xử lý câu query.
 
 ```php
 $cookee = base64_decode($cookee);
