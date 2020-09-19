@@ -37,7 +37,7 @@ Payload: `?id=0'+and+extractvalue(0x0a,concat(0x0a,(select+group_concat(table_na
 
 Source code bao gồm các `route` để `authenticate` user cơ bản như: `login`,`forgot password`,`logged-in`,`new_user`,`pass_change`...
 
-Đọc source sơ qua thì mình tìm thấy điểm này khá thú vị ở file `pas_change.php`.
+Đọc source sơ qua thì mình tìm thấy điểm này khá thú vị ở file `pass_change.php`.
 
 ```php
 $username= $_SESSION["username"];
