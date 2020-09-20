@@ -1,4 +1,4 @@
-# sqli-labs
+# sqli-labs (Basic)
 
 Link tải lab tại [đây](https://github.com/Audi-1/sqli-labs)
 
