@@ -213,7 +213,7 @@ Payload tương tự câu 50 hoặc sử dụng `extractvalue()`.
 
 Tương tự câu 50, vẫn là `Stacked Injection`, nhưng lỗi mysql sẽ không hiển thị.
 
-Payload: `?sort=1; create table less51 like users;--+ `
+Payload: `?sort=1; create table less52 like users;--+ `
 
 ## Less-53
 
